@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  web:
+    build: ./app
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./app/:/usr/src/app/
+    ports:
+      - 8000:8000
+    env_file:
+      - ./.env.dev
+
+  db:
+    image: postgres:15
+    restart:
+      always
+      # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env.dev
+
+  # environment:
+  #   - POSTGRES_USER=hello_django
+  #   - POSTGRES_PASSWORD=hello_django
+  #   - POSTGRES_DB=hello_django_dev
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+  dozzle:
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9999:8080"
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4:latest
+    env_file:
+      - ./.env.dev
+    environment:
+      - PGADMIN_CONFIG_LOGIN_BANNER="Authorisedusers"
+    ports:
+      - "5050:80"
+    restart: always
+
+volumes:
+  postgres_data:
