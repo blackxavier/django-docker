@@ -1,3 +1,5 @@
+Reference Blog
+- https://testdriven.io/blog/dockerizing-django-with-postgres-gunicorn-and-nginx/
 Tini
 - https://hub.docker.com/r/krallin/ubuntu-tini
 - https://computingpost.medium.com/how-to-use-tini-init-system-in-docker-containers-69283d0099ed
@@ -9,3 +11,31 @@ Notable Commands
 - docker-compose -f docker-compose-prod.yml up -d --build
 - docker-compose -f docker-compose-prod.yml exec web python manage.py migrate --noinput
 - docker-compose -f docker-compose-prod.yml exec web python manage.py collectstatic --no-input --clear
+
+Services :
+- web (Django app running running behind a gunicorn application server)
+  This service is built from the app/ folder that contains a Dockerfile. The Dockerfile uses multi-stage 
+  build to reduce image size. It mount two volumes (static_volume and media_volume). The static_volume maps to the /home/app/web/staticfiles path on the web container.
+  This volume is later mounted in the nginx container so is can access the static files.
+  The media_volume is mounted on the web path (/home/app/web/mediafiles), this volume is also accessible by the nginx container
+  web exposes port 8000, this allows the nginx container to pass request to it. It also contains a file that stores environment varaibles.
+
+
+- db (A postgres db)
+  This service runs the postgres:15 image, sets a shared memory limit and has a flag that restarts the container if it is stopped. 
+  
+- nginx 
+  This service is build from the nginx/ directory. It uses the nginx:1.25 image as a base image. It binds port 80 on both ends and attaches 2 volumes
+  (media_volume & static_volume). It also depends on the web which means the web service must finish botting before it starts. 
+
+- adminer
+  This is a DBMS for the postgres database used in this setup.
+
+- dozzle
+  This uses the amir20/dozzle:latest image and bind the docker socket on the host to the socket in the container. It uses this to give graphical information 
+  about the services running on the host. 
+
+- pgadmin
+  This is another DBMS for the postgres database used in this setup. 
+
+The django app displays a simple interface that is used to upload a file and displays the path to that file in storage. 

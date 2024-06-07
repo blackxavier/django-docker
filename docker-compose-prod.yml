@@ -8,6 +8,7 @@ services:
     command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - static_volume:/home/app/web/staticfiles
+      - media_volume:/home/app/web/mediafiles
     expose:
       - 8000
     env_file:
@@ -19,6 +20,7 @@ services:
       - 80:80
     volumes:
       - static_volume:/home/app/web/staticfiles
+      - media_volume:/home/app/web/mediafiles
     depends_on:
       - web
 
@@ -32,11 +34,6 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env.db.prod
-
-  # environment:
-  #   - POSTGRES_USER=hello_django
-  #   - POSTGRES_PASSWORD=hello_django
-  #   - POSTGRES_DB=hello_django_dev
 
   adminer:
     image: adminer
@@ -66,3 +63,4 @@ services:
 volumes:
   postgres_data:
   static_volume:
+  media_volume:
