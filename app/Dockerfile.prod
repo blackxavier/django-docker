@@ -76,4 +76,4 @@ RUN chown -R app:app $APP_HOME
 USER app
 
 # run entrypoint.prod.sh
-ENTRYPOINT ["/usr/local/bin/tini", "--","/home/app/web/app-entrypoint.sh"]
+ENTRYPOINT ["/home/app/web/app-entrypoint.sh"]
