@@ -40,6 +40,9 @@ services:
     restart: always
     ports:
       - 8080:8080
+      
+  redis:
+    image: redis
 
   dozzle:
     container_name: dozzle
