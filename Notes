@@ -39,3 +39,9 @@ Services :
   This is another DBMS for the postgres database used in this setup. 
 
 The django app displays a simple interface that is used to upload a file and displays the path to that file in storage. 
+
+Commands to deploy using docker stack
+- docker stack deploy registry --compose-file docker-stack-registry.yml
+- docker-compose -f docker-compose-stack.yml build
+- docker-compose -f docker-compose-stack.yml push
+- docker stack deploy djangostack --compose-file docker-compose-stack.yml
