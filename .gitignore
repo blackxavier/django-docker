@@ -289,6 +289,9 @@ pyrightconfig.json
 [Ss]cripts
 pyvenv.cfg
 pip-selfcheck.json
-
+.env.db.dev
+.env.db.prod
+.env.server.dev
+.env.server.prod
 
 # End of https://www.toptal.com/developers/gitignore/api/django,git,python,venv

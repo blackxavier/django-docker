@@ -1,0 +1,64 @@
+name: CI/CD for django sample app
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/*"
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9" # Specify your Python version
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r app/requirements.txt
+
+      - name: Run linting
+        run: |
+          flake8 .  # Replace with your preferred linter and configuration
+
+      - name: Run migrations
+        env:
+          DJANGO_SETTINGS_MODULE: core.settings
+        run: |
+          python manage.py migrate
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Ansible
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          playbook: ansible/playbooks/playbook.yml
+          inventory: |
+            [all]
+            ${{ secrets.SERVER_IP }} ansible_user=${{ secrets.SSH_USER }}
+            extra_vars: |
+            postgres_user=${{ secrets.POSTGRES_USER }}
+            postgres_password=${{ secrets.POSTGRES_PASSWORD }}
+            postgres_db=${{ secrets.POSTGRES_DB }}
+            ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+            ssh_user: ${{ secrets.SSH_USER }}
+
+      # - name: SSH & Deploy
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.SERVER_IP }}
+      #     username: ${{ secrets.USERNAME }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     script: |
+      #       cd /home/bulwarkuser
+      #       ./deploy.sh

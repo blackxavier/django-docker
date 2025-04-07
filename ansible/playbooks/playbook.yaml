@@ -1,0 +1,86 @@
+---
+- name: Set up Nginx and PostgreSQL on Ubuntu 22
+  hosts: all
+  become: true
+
+  vars:
+    postgres_user: "{{ postgres_user }}"
+    postgres_password: "{{ postgres_password }}"
+    postgres_db: "{{ postgres_db }}"
+
+  tasks:
+    # Update and upgrade the system
+    - name: Update apt packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+    # Install Nginx
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Ensure Nginx is enabled and running
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    # Install PostgreSQL
+    - name: Install PostgreSQL
+      apt:
+        name: postgresql
+        state: present
+
+    - name: Ensure PostgreSQL is enabled and running
+      service:
+        name: postgresql
+        state: started
+        enabled: yes
+
+    # Configure PostgreSQL
+    - name: Create a PostgreSQL database
+      become_user: postgres
+      postgresql_db:
+        name: "{{ postgres_db }}"
+
+    - name: Create a PostgreSQL user
+      become_user: postgres
+      postgresql_user:
+        name: "{{ postgres_user }}"
+        password: "{{ postgres_password }}"
+        priv: "ALL"
+
+    - name: Grant privileges to the user on the database
+      become_user: postgres
+      postgresql_privs:
+        db: "{{ postgres_db }}"
+        roles: "{{ postgres_user }}"
+        type: database
+        privs: ALL
+      # Configure UFW (optional)
+    - name: Allow Nginx Full profile through UFW
+      ufw:
+        rule: allow
+        name: "Nginx Full"
+
+    - name: Allow PostgreSQL through UFW
+      ufw:
+        rule: allow
+        port: 5432
+        proto: tcp
+    - name: Configure Nginx
+    - name: Copy Nginx configuration
+      template:
+        src: ansible/templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: "0644"
+    - name: Test Nginx configuration
+      command: nginx -t
+
+    - name: Restart Nginx
+      service:
+        name: nginx
+        state: restarted
