@@ -40,6 +40,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: List files for debugging
+        run: ls -R
       - name: Set up Ansible
         uses: dawidd6/action-ansible-playbook@v2
         with:
