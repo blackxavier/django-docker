@@ -69,7 +69,7 @@
         rule: allow
         port: 5432
         proto: tcp
-    - name: Configure Nginx
+
     - name: Copy Nginx configuration
       template:
         src: ansible/templates/nginx.conf.j2
