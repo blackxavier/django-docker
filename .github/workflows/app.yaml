@@ -47,8 +47,7 @@ jobs:
       - name: Set up Ansible
         uses: dawidd6/action-ansible-playbook@v2
         with:
-          playbook: playbook.yml
-          directory: ./ansible/playbooks
+          playbook: ./ansible/playbooks/playbook.yml
           inventory: |
             [all]
             ${{ secrets.SERVER_IP }} ansible_user=${{ secrets.SSH_USER }}
