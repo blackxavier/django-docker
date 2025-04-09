@@ -60,6 +60,15 @@ jobs:
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
           chmod 600 key.pem
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "echo 'Success!'"
+      - name: Create encrypted extra-vars file
+        run: |
+          cat <<EOF > /tmp/vars.yml
+          postgres_user: ${{ secrets.POSTGRES_USER }}
+          postgres_password: ${{ secrets.POSTGRES_PASSWORD }}
+          postgres_db: ${{ secrets.POSTGRES_DB }}
+          EOF
+          # Optional: Encrypt the file (if you have ansible-vault setup)
+
       - name: Run Ansible Playbook
         uses: dawidd6/action-ansible-playbook@v2
         with:
@@ -70,8 +79,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }} # Auto-creates ./key.pem
           options: |
             -vvv
-            --extra-vars='
-              postgres_user=${{ secrets.POSTGRES_USER }}
-              postgres_password=${{ secrets.POSTGRES_PASSWORD }}
-              postgres_db=${{ secrets.POSTGRES_DB }}
-            '
+            --extra-vars=@/tmp/vars.yml
