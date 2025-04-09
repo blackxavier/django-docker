@@ -55,6 +55,8 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y ansible
+          ansible-galaxy collection install community.postgresql
+
       - name: Test SSH Connection
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
@@ -68,6 +70,14 @@ jobs:
           postgres_db: ${{ secrets.POSTGRES_DB }}
           EOF
           # Optional: Encrypt the file (if you have ansible-vault setup)
+
+      - name: Cache Ansible collections
+        uses: actions/cache@v3
+        with:
+          path: ~/.ansible/collections
+          key: ${{ runner.os }}-ansible-collections
+          restore-keys: |
+            ${{ runner.os }}-ansible-collections
 
       - name: Run Ansible Playbook
         uses: dawidd6/action-ansible-playbook@v2
