@@ -45,16 +45,33 @@ jobs:
 
       - name: Install Python (Ansible dependency)
         run: sudo apt-get update && sudo apt-get install -y python3
+      - name: Set up SSH
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
+          chmod 600 private_key.pem
 
+      - name: Install Ansible
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+      - name: Test SSH Connection
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
+          chmod 600 key.pem
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "echo 'Success!'"
       - name: Run Ansible Playbook
-        uses: ansible/ansible-actions@main # Official Ansible action
+        uses: dawidd6/action-ansible-playbook@v2
         with:
           playbook: ./ansible/playbooks/playbook.yaml
           inventory: |
             [all]
-            ${{ secrets.SERVER_IP }} ansible_user=${{ secrets.SSH_USER }} ansible_ssh_private_key_file=${{ secrets.SSH_PRIVATE_KEY }}
-          extra_vars: |
-            postgres_user: ${{ secrets.POSTGRES_USER }}
-            postgres_password: ${{ secrets.POSTGRES_PASSWORD }}
-            postgres_db: ${{ secrets.POSTGRES_DB }}
-          ssh_key: ${{ secrets.SSH_PRIVATE_KEY }} # Automatically handles key setup
+            ${{ secrets.SERVER_IP }} ansible_user=${{ secrets.SSH_USER }} ansible_ssh_private_key_file=./key.pem
+          key: ${{ secrets.SSH_PRIVATE_KEY }} # Auto-creates ./key.pem
+          options: |
+            -vvv
+            --extra-vars='
+              postgres_user=${{ secrets.POSTGRES_USER }}
+              postgres_password=${{ secrets.POSTGRES_PASSWORD }}
+              postgres_db=${{ secrets.POSTGRES_DB }}
+            '
