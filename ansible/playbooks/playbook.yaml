@@ -33,7 +33,7 @@
         enabled: yes
 
     - name: Install PostgreSQL Collection
-      run: ansible-galaxy collection install community.postgresql
+      command: ansible-galaxy collection install community.postgresql
       changed_when: false
     # Install PostgreSQL
     - name: Install PostgreSQL
