@@ -79,4 +79,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }} # Auto-creates ./key.pem
           options: |
             -vvv
+
             --extra-vars=@/tmp/vars.yml
