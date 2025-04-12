@@ -47,22 +47,22 @@
         state: started
         enabled: yes
 
-    - name: Create PostgreSQL database
-      community.postgresql.postgresql_db:
-        name: "{{ postgres_db }}"
-        # Explicitly connect as OS user `postgres`
-        become: yes
-        become_user: postgres
+    # - name: Create PostgreSQL database
+    #   community.postgresql.postgresql_db:
+    #     name: "{{ postgres_db }}"
+    #     # Explicitly connect as OS user `postgres`
+    #     become: yes
+    #     become_user: postgres
 
-    - name: Create PostgreSQL user
-      community.postgresql.postgresql_user:
-        name: "{{ postgres_user }}"
-        password: "{{ postgres_password }}"
-        role_attr_flags: "SUPERUSER,CREATEDB"
-      become: yes
-      become_user: postgres
-      become_method: su # Added become method
-      # Configure UFW (optional)
+    # - name: Create PostgreSQL user
+    #   community.postgresql.postgresql_user:
+    #     name: "{{ postgres_user }}"
+    #     password: "{{ postgres_password }}"
+    #     role_attr_flags: "SUPERUSER,CREATEDB"
+    #   become: yes
+    #   become_user: postgres
+    #   become_method: su # Added become method
+    #   # Configure UFW (optional)
     - name: Allow Nginx Full profile through UFW
       ufw:
         rule: allow
