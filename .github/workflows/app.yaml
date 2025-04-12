@@ -100,6 +100,7 @@ jobs:
 
             --extra-vars=@/tmp/vars.yml
   build-and-push:
+    needs: [setup-server]
     runs-on: ubuntu-latest
 
     steps:
@@ -133,6 +134,4 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/app:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
-            ghcr.io/${{ github.repository_owner }}/app:${{ github.sha }}  # GHCR tag   
-    
-      
+            ghcr.io/${{ github.repository_owner }}/app:${{ github.sha }}  # GHCR tag
