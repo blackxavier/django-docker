@@ -14,14 +14,35 @@ services:
     env_file:
       - ./.env.server.prod
 
-  redis:
-    image: redis
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+    volumes:
+      - static_volume:/home/app/web/staticfiles
+      - media_volume:/home/app/web/mediafiles
+    depends_on:
+      - web
+
+  db:
+    image: postgres:15
+    restart:
+      always
+      # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env.db.prod
 
   adminer:
     image: adminer
     restart: always
     ports:
       - 8080:8080
+      
+  redis:
+    image: redis
 
   dozzle:
     container_name: dozzle
