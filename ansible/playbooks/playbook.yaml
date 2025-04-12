@@ -31,10 +31,6 @@
         name: nginx
         state: started
         enabled: yes
-
-    - name: Install PostgreSQL Collection
-      command: ansible-galaxy collection install community.postgresql
-      changed_when: false
     # Install PostgreSQL
     - name: Install PostgreSQL
       apt:
