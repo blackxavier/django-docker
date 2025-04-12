@@ -50,7 +50,6 @@
         state: started
         enabled: yes
 
-   
     - name: Allow Nginx Full profile through UFW
       ufw:
         rule: allow
@@ -62,6 +61,14 @@
         port: 5432
         proto: tcp
 
+    - name: Restore default nginx.conf
+      copy:
+        src: "{{ lookup('env', 'GITHUB_WORKSPACE') }}/ansible/templates/nginx.conf.j2" 
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: "0644"
+        
     - name: Copy Nginx site config
       template:
         src: templates/sites-available/app.conf.j2
