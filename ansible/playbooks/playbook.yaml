@@ -84,9 +84,4 @@
         src: /etc/nginx/sites-available/app.conf
         dest: /etc/nginx/sites-enabled/app.conf
         state: link
-
-    - name: Test Nginx configuration
-      command: nginx -t
-      register: nginx_test
-      changed_when: false # Always runs but doesn't report "changed"
       notify: Restart Nginx
