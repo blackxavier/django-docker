@@ -102,6 +102,9 @@ jobs:
   build-and-push:
     needs: [setup-server]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout Code
@@ -120,7 +123,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner }} # Use owner/org name
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and Push Django Image to GHCR and Docker Hub
@@ -135,3 +138,4 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/app:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
             ghcr.io/${{ github.repository_owner }}/app:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/app:latest
