@@ -2,28 +2,39 @@ version: "3.8"
 
 services:
   web:
+    image: ${{ secrets.DOCKERHUB_USERNAME }}/app:latest # From Docker Hub
     build:
       context: ./app
       dockerfile: Dockerfile.prod
+    restart: always
+    containter_name: app
+    networks:
+      - backend
     command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - static_volume:/home/app/web/staticfiles
       - media_volume:/home/app/web/mediafiles
-    expose:
-      - 8000
+    ports:
+      - 8000:8000
     env_file:
       - ./.env.server.prod
 
   redis:
     image: redis
+    networks:
+      - backend
 
   adminer:
     image: adminer
+    networks:
+      - backend
     restart: always
     ports:
       - 8080:8080
 
   dozzle:
+    networks:
+      - backend
     container_name: dozzle
     image: amir20/dozzle:latest
     volumes:
@@ -32,6 +43,8 @@ services:
       - "9999:8080"
 
   pgadmin:
+    networks:
+      - backend
     container_name: pgadmin
     image: dpage/pgadmin4:latest
     env_file:
@@ -46,3 +59,7 @@ volumes:
   postgres_data:
   static_volume:
   media_volume:
+
+networks:
+  backend:
+    driver: bridge

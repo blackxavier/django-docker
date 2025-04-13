@@ -7,6 +7,8 @@
     postgres_user: "{{ postgres_user }}"
     postgres_password: "{{ postgres_password }}"
     postgres_db: "{{ postgres_db }}"
+    postgres_listen_address: "{{ postgres_listen_address }}" 
+    docker_subnet: "{{ docker_subnet }}" 
 
   handlers:
     - name: Restart Nginx
@@ -14,6 +16,11 @@
         name: nginx
         state: restarted
         when: nginx_test.rc == 0
+        
+    - name: Restart PostgreSQL
+      service:
+        name: postgresql
+        state: restarted
 
   tasks:
     # Update and upgrade the system
@@ -50,6 +57,22 @@
         state: started
         enabled: yes
 
+    - name: Set listen addresses
+      ansible.builtin.lineinfile:
+        path: /etc/postgresql/14/main/postgresql.conf # Adjust version if needed
+        regexp: "^#?listen_addresses\\s*="
+        line: "listen_addresses = 'localhost,{{ postgres_listen_address }}'"
+        backup: yes
+      notify: Restart PostgreSQL
+
+    # Update pg_hba.conf
+    - name: Allow Docker subnet access
+      ansible.builtin.lineinfile:
+        path: /etc/postgresql/14/main/pg_hba.conf
+        line: "host    all             all             {{ docker_subnet }}           md5"
+        insertafter: EOF
+      notify: Restart PostgreSQL
+
     - name: Allow Nginx Full profile through UFW
       ufw:
         rule: allow
@@ -85,7 +108,7 @@
         dest: /etc/nginx/sites-enabled/app.conf
         state: link
       notify: Restart Nginx
-      
+
 - hosts: all
   name: Setup docker and docker compose on ubuntu 22
   become: true
@@ -134,5 +157,3 @@
     - name: Install Docker Module for Python
       pip:
         name: docker
-
-    
