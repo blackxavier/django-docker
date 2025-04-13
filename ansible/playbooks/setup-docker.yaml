@@ -10,6 +10,7 @@
 
     - role: geerlingguy.docker
       vars:
-        docker_users: # Add your SSH user to docker group
+        docker_users: "{{ ansible_user }}" # Add the current user to the docker group
+        docker_group: docker
           - "{{ ansible_user }}"
-        docker_install_compose: false # We're using pip instead
+        docker_install_compose: false
