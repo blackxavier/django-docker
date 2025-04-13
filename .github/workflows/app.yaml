@@ -97,7 +97,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }} # Auto-creates ./key.pem
           options: |
             -vvv
-
             --extra-vars=@/tmp/vars.yml
   build-and-push:
     needs: [setup-server]
@@ -139,3 +138,12 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
             ghcr.io/${{ github.repository_owner }}/app:${{ github.sha }}
             ghcr.io/${{ github.repository_owner }}/app:latest
+      
+      - name: Install Docker via Ansible
+        uses: dawidd6/action-ansible-playbook@v2
+        with:
+          playbook: ./ansible/playbooks/setup-docker.yaml
+          inventory: |
+            [all]
+            ${{ secrets.SERVER_IP }} ansible_user=${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
