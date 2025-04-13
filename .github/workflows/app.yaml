@@ -134,4 +134,4 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/app:${{ github.sha }}
             ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
-            ghcr.io/${{ github.repository_owner }}/app:${{ github.sha }}  # GHCR tag
+            ghcr.io/${{ github.repository_owner }}/app:${{ github.sha }}
