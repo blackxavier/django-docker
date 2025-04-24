@@ -141,7 +141,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/app:${{ github.sha }}
             ghcr.io/${{ github.repository_owner }}/app:latest
 
-      - name: Debug Ansible roles for docker
+      - name: Install ansible roles for docker
         run: |
           ansible-galaxy install geerlingguy.pip geerlingguy.docker
 

@@ -61,5 +61,4 @@ volumes:
   media_volume:
 
 networks:
-  backend:
-    driver: bridge
+  
