@@ -110,19 +110,19 @@
         group: root
         mode: "0644"
 
-    - name: Copy Nginx site config
-      template:
-        src: templates/sites-available/app.conf.j2
-        dest: /etc/nginx/sites-available/app.conf
+    # - name: Copy Nginx site config
+    #   template:
+    #     src: templates/sites-available/app.conf.j2
+    #     dest: /etc/nginx/sites-available/app.conf
 
-    - name: Remove default site
-      file:
-        path: /etc/nginx/sites-enabled/default
-        state: absent
+    # - name: Remove default site
+    #   file:
+    #     path: /etc/nginx/sites-enabled/default
+    #     state: absent
 
-    - name: Enable site
-      file:
-        src: /etc/nginx/sites-available/app.conf
-        dest: /etc/nginx/sites-enabled/app.conf
-        state: link
-      notify: Restart Nginx
+    # - name: Enable site
+    #   file:
+    #     src: /etc/nginx/sites-available/app.conf
+    #     dest: /etc/nginx/sites-enabled/app.conf
+    #     state: link
+    #   notify: Restart Nginx
