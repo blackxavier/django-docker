@@ -88,7 +88,7 @@ jobs:
 
       - name: List files for debugging
         run: ls -R
-        
+
       - name: Run Ansible Playbook
         uses: dawidd6/action-ansible-playbook@v2
         with:
@@ -100,6 +100,24 @@ jobs:
           options: |
             -vvv
             --extra-vars=@/tmp/vars.yml
+
+      - name: Debug Nginx Failure
+        uses: appleboy/ssh-action@master
+        if: always()
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY  }}
+          script: |
+            echo "=== Nginx Status ==="
+            sudo systemctl status nginx
+            echo "=== Nginx Config Test ==="
+            sudo nginx -t
+            echo "=== Journal Logs ==="
+            sudo journalctl -u nginx --no-pager -n 20
+            echo "=== Port 80 Usage ==="
+            sudo netstat -tulnp | grep 80
+
   build-and-push:
     needs: [setup-server]
     runs-on: ubuntu-latest
