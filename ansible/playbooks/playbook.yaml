@@ -49,6 +49,14 @@
         group: www-data
         mode: "0755"
 
+    - name: Restore default nginx.conf
+      copy:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: "0644"
+
     - name: Validate Nginx configuration
       command: nginx -t
       register: nginx_test
@@ -58,14 +66,6 @@
       fail:
         msg: "Nginx configuration is invalid. See error: {{ nginx_test.stderr }}"
       when: nginx_test.rc != 0
-
-    - name: Restore default nginx.conf
-      copy:
-        src: templates/nginx.conf.j2
-        dest: /etc/nginx/nginx.conf
-        owner: root
-        group: root
-        mode: "0644"
 
     - name: Restart Nginx
       service:
