@@ -28,23 +28,6 @@
         name: python3
         state: present
 
-    - name: Remove existing Nginx completely
-      apt:
-        name: nginx
-        state: absent
-        purge: yes
-        autoremove: yes
-      ignore_errors: yes # In case Nginx isn't installed
-
-    - name: Remove leftover Nginx config files
-      file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - /etc/nginx
-        - /var/www/html
-        - /var/log/nginx
-      ignore_errors: yes
 
     - name: Install net-tools (for netstat)
       apt:
@@ -110,19 +93,4 @@
         group: root
         mode: "0644"
 
-    # - name: Copy Nginx site config
-    #   template:
-    #     src: templates/sites-available/app.conf.j2
-    #     dest: /etc/nginx/sites-available/app.conf
-
-    # - name: Remove default site
-    #   file:
-    #     path: /etc/nginx/sites-enabled/default
-    #     state: absent
-
-    # - name: Enable site
-    #   file:
-    #     src: /etc/nginx/sites-available/app.conf
-    #     dest: /etc/nginx/sites-enabled/app.conf
-    #     state: link
-    #   notify: Restart Nginx
+    
