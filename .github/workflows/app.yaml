@@ -3,7 +3,6 @@ name: CI/CD for django sample app
 on:
   push:
     branches:
-      - main
       - "feature/*"
   workflow_dispatch:
 

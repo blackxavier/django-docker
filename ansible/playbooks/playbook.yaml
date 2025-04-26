@@ -28,7 +28,6 @@
         name: python3
         state: present
 
-
     - name: Install net-tools (for netstat)
       apt:
         name: net-tools
@@ -42,12 +41,42 @@
         state: present
         update_cache: yes
 
-    - name: Ensure Nginx is enabled and running
+    - name: Ensure Nginx log directory exists
+      file:
+        path: /var/log/nginx
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: "0755"
+
+    - name: Validate Nginx configuration
+      command: nginx -t
+      register: nginx_test
+      ignore_errors: yes
+
+    - name: Fail if Nginx configuration is invalid
+      fail:
+        msg: "Nginx configuration is invalid. See error: {{ nginx_test.stderr }}"
+      when: nginx_test.rc != 0
+
+    - name: Restore default nginx.conf
+      copy:
+        src: templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Restart Nginx
       service:
         name: nginx
-        state: started
+        state: restarted
+
+    - name: Enable Nginx to start on boot
+      service:
+        name: nginx
         enabled: yes
-    # Install PostgreSQL
+
     - name: Install PostgreSQL
       apt:
         name: postgresql
@@ -85,12 +114,3 @@
         owner: www-data
         group: www-data
         mode: "0755"
-    - name: Restore default nginx.conf
-      copy:
-        src: templates/nginx.conf.j2
-        dest: /etc/nginx/nginx.conf
-        owner: root
-        group: root
-        mode: "0644"
-
-    
