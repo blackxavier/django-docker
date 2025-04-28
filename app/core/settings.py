@@ -1,11 +1,17 @@
 import os
 
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get("SECRET_KEY")
+def get_env_variable(var_name):
+    value = os.environ.get(var_name)
+    if not value:
+        raise ImproperlyConfigured(f"The {var_name} environment variable is not set.")
+    return value
+
+
+SECRET_KEY = get_env_variable("SECRET_KEY")
 
 DEBUG = bool(os.environ.get("DEBUG", default=0))
 
@@ -63,9 +69,7 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": os.environ.get(
-            "APP_SQL_ENGINE", "django.db.backends.sqlite3"
-        ),
+        "ENGINE": os.environ.get("APP_SQL_ENGINE", "django.db.backends.sqlite3"),
         "NAME": os.environ.get("APP_SQL_DATABASE", BASE_DIR / "db.sqlite3"),
         "USER": os.environ.get("APP_SQL_USER", "user"),
         "PASSWORD": os.environ.get("APP_SQL_PASSWORD", "password"),
@@ -86,22 +90,13 @@ AUTH_PASSWORD_VALIDATORS = [
         ),
     },
     {
-        "NAME": (
-            "django.contrib.auth.password_validation."
-            "MinimumLengthValidator"
-        ),
+        "NAME": ("django.contrib.auth.password_validation." "MinimumLengthValidator"),
     },
     {
-        "NAME": (
-            "django.contrib.auth.password_validation."
-            "CommonPasswordValidator"
-        ),
+        "NAME": ("django.contrib.auth.password_validation." "CommonPasswordValidator"),
     },
     {
-        "NAME": (
-            "django.contrib.auth.password_validation."
-            "NumericPasswordValidator"
-        ),
+        "NAME": ("django.contrib.auth.password_validation." "NumericPasswordValidator"),
     },
 ]
 

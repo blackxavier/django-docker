@@ -1,9 +1,10 @@
+###########
+# BUILDER #
+###########
 
-###########
-# BUILDER 1 #
-###########
 # pull official base image
 FROM krallin/ubuntu-tini:trusty as tini
+
 # pull official base image
 FROM python:3.11.4-slim-buster as builder
 
@@ -18,12 +19,15 @@ ENV PYTHONUNBUFFERED 1
 RUN apt-get update && \
     apt-get install -y --no-install-recommends gcc
 
-# install python dependencies
+# lint
 RUN pip install --upgrade pip
+RUN pip install flake8==6.0.0
 COPY . /usr/src/app/
+RUN flake8 --ignore=E501,F401 .
+
+# install python dependencies
 COPY ./requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
-
 
 
 #########
@@ -46,6 +50,8 @@ RUN addgroup --system app && adduser --system --group app
 ENV HOME=/home/app
 ENV APP_HOME=/home/app/web
 RUN mkdir $APP_HOME
+RUN mkdir $APP_HOME/staticfiles
+RUN mkdir $APP_HOME/mediafiles
 WORKDIR $APP_HOME
 
 # install dependencies
@@ -56,7 +62,7 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache /wheels/*
 
 # copy entrypoint.prod.sh
-COPY ./app-entrypoint.prod.sh .
+COPY ./app-entrypoint.sh .
 RUN sed -i 's/\r$//g'  $APP_HOME/app-entrypoint.sh
 RUN chmod +x  $APP_HOME/app-entrypoint.sh
 
@@ -69,9 +75,5 @@ RUN chown -R app:app $APP_HOME
 # change to the app user
 USER app
 
-# run entrypoint.prod.sh with tini
-ENTRYPOINT ["/usr/local/bin/tini", "--", "/home/app/web/app-entrypoint.sh"]
-
-
-
-
+# run entrypoint.prod.sh
+ENTRYPOINT ["/home/app/web/app-entrypoint.sh"]

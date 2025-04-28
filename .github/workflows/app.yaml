@@ -25,7 +25,7 @@ jobs:
 
       - name: Run linting
         run: |
-          flake8 .  # Replace with your preferred linter and configuration
+          flake8 .  
       - name: List files for debugging
         run: ls -R
       - name: Run migrations
@@ -35,90 +35,9 @@ jobs:
         run: |
           python manage.py migrate
 
-  setup-server:
-    runs-on: ubuntu-latest
-    needs: [lint]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install Python (Ansible dependency)
-        run: sudo apt-get update && sudo apt-get install -y python3
-      - name: Set up SSH
-        run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key.pem
-          chmod 600 private_key.pem
-
-      - name: Install Ansible
-        shell: bash
-        run: |
-          sudo apt update
-          pip install psycopg2-binary
-          python -m pip install --upgrade ansible
-
-          # Force install even if collection exists
-          ansible-galaxy collection install community.postgresql --force
-      - name: Debug Ansible Collections
-        run: |
-          ansible-galaxy collection list | grep "community.postgresql"
-          ls -l ~/.ansible/collections/ansible_collections/community/postgresql
-
-      - name: Test SSH Connection
-        run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
-          chmod 600 key.pem
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "echo 'Success!'"
-
-      - name: Create encrypted extra-vars file
-        run: |
-          cat <<EOF > /tmp/vars.yml
-          postgres_user: ${{ secrets.POSTGRES_USER }}
-          postgres_password: ${{ secrets.POSTGRES_PASSWORD }}
-          postgres_db: ${{ secrets.POSTGRES_DB }}
-          EOF
-
-      - name: Cache Ansible collections
-        uses: actions/cache@v3
-        with:
-          path: ~/.ansible/collections
-          key: ${{ runner.os }}-ansible-collections
-          restore-keys: |
-            ${{ runner.os }}-ansible-collections
-
-      - name: List files for debugging
-        run: ls -R
-
-      - name: Run Ansible Playbook
-        uses: dawidd6/action-ansible-playbook@v2
-        with:
-          playbook: ./ansible/playbooks/playbook.yaml
-          inventory: |
-            [all]
-            ${{ secrets.SERVER_IP }} ansible_user=${{ secrets.SSH_USER }} ansible_ssh_private_key_file=./key.pem
-          key: ${{ secrets.SSH_PRIVATE_KEY }} # Auto-creates ./key.pem
-          options: |
-            -vvv
-            --extra-vars=@/tmp/vars.yml
-
-      - name: Debug Nginx Failure
-        uses: appleboy/ssh-action@master
-        if: always()
-        with:
-          host: ${{ secrets.SERVER_IP }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY  }}
-          script: |
-            echo "=== Nginx Status ==="
-            sudo systemctl status nginx
-            echo "=== Nginx Config Test ==="
-            sudo nginx -t
-            echo "=== Journal Logs ==="
-            sudo journalctl -u nginx --no-pager -n 20
-            echo "=== Port 80 Usage ==="
-            sudo netstat -tulnp | grep 80
+  
 
   build-and-push:
-    needs: [setup-server]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -144,11 +63,11 @@ jobs:
           username: ${{ github.repository_owner }} # Use owner/org name
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and Push Django Image to GHCR and Docker Hub
+      - name: Build and Push web Image to GHCR and Docker Hub
         uses: docker/build-push-action@v5
         with:
           context: ./app
-          file: ./app/Dockerfile.prod
+          file: ./app/Dockerfile
           cache-from: type=gha
           cache-to: type=gha,mode=max
           push: true
@@ -157,19 +76,23 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
             ghcr.io/${{ github.repository_owner }}/app:${{ github.sha }}
             ghcr.io/${{ github.repository_owner }}/app:latest
-
-      - name: Install ansible roles for docker
-        run: |
-          ansible-galaxy install geerlingguy.pip geerlingguy.docker
-
-      - name: Install Docker via Ansible
-        uses: dawidd6/action-ansible-playbook@v2
+      
+      - name: Build and Push nginx Image to GHCR and Docker Hub
+        uses: docker/build-push-action@v5
         with:
-          playbook: ./ansible/playbooks/setup-docker.yaml
-          inventory: |
-            [all]
-            ${{ secrets.SERVER_IP }} ansible_user=${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          context: ./nginx
+          file: ./nginx/Dockerfile
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/r-proxy:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/r-proxy:latest
+            ghcr.io/${{ github.repository_owner }}/r-proxy:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/r-proxy:latest
+
+      
+     
 
   # deploy:
   #   runs-on: ubuntu-latest
