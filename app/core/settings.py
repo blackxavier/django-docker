@@ -7,9 +7,13 @@ from django.core.exceptions import ImproperlyConfigured
 def get_env_variable(var_name):
     value = os.environ.get(var_name)
     if not value:
-        raise ImproperlyConfigured(f"The {var_name} environment variable is not set.")
+        raise ImproperlyConfigured(
+            f"The {var_name} environment variable is not set."
+            )
     return value
 
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = get_env_variable("SECRET_KEY")
 
@@ -90,13 +94,19 @@ AUTH_PASSWORD_VALIDATORS = [
         ),
     },
     {
-        "NAME": ("django.contrib.auth.password_validation." "MinimumLengthValidator"),
+        "NAME": (
+            "django.contrib.auth.password_validation." "MinimumLengthValidator"
+            ),
     },
     {
-        "NAME": ("django.contrib.auth.password_validation." "CommonPasswordValidator"),
+        "NAME": (
+            "django.contrib.auth.password_validation." "CommonPasswordValidator"
+            ),
     },
     {
-        "NAME": ("django.contrib.auth.password_validation." "NumericPasswordValidator"),
+        "NAME": (
+            "django.contrib.auth.password_validation." "NumericPasswordValidator"
+            ),
     },
 ]
 
