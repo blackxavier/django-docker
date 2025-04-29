@@ -4,18 +4,15 @@ from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 
 
-def get_env_variable(var_name):
-    value = os.environ.get(var_name)
-    if not value:
-        raise ImproperlyConfigured(
-            f"The {var_name} environment variable is not set."
-            )
+def get_env_variable(var_name, default=None):
+    value = os.environ.get(var_name, default)
+    if value is None:
+        raise ImproperlyConfigured(f"The {var_name} environment variable is not set and no default value was provided.")
     return value
 
 
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-SECRET_KEY = get_env_variable("SECRET_KEY")
+# Use the updated function to set SECRET_KEY with a fallback value
+SECRET_KEY = get_env_variable("SECRET_KEY", "fallback-secret-key")
 
 DEBUG = bool(os.environ.get("DEBUG", default=0))
 
@@ -94,19 +91,13 @@ AUTH_PASSWORD_VALIDATORS = [
         ),
     },
     {
-        "NAME": (
-            "django.contrib.auth.password_validation." "MinimumLengthValidator"
-            ),
+        "NAME": ("django.contrib.auth.password_validation." "MinimumLengthValidator"),
     },
     {
-        "NAME": (
-            "django.contrib.auth.password_validation." "CommonPasswordValidator"
-            ),
+        "NAME": ("django.contrib.auth.password_validation." "CommonPasswordValidator"),
     },
     {
-        "NAME": (
-            "django.contrib.auth.password_validation." "NumericPasswordValidator"
-            ),
+        "NAME": ("django.contrib.auth.password_validation." "NumericPasswordValidator"),
     },
 ]
 
