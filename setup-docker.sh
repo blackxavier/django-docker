@@ -68,6 +68,9 @@ EOF
 echo "Adding $USER user to docker group..."
 sudo usermod -aG docker $USER
 
+# Apply group changes without logout
+echo "Applying group changes for $USER..."
+newgrp docker <<EOF
 # Start and enable services
 echo "Starting Docker..."
 sudo systemctl enable docker
@@ -79,5 +82,3 @@ docker --version
 docker-compose --version
 
 echo "=== Setup completed successfully ==="
-echo "You may need to logout and login again for group changes to take effect"
-echo "Test with: docker run hello-world"
