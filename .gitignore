@@ -23,6 +23,7 @@ __pycache__/
 
 # C extensions
 *.so
+clancy.code-workspace
 
 # Distribution / packaging
 .Python
@@ -151,7 +152,6 @@ cython_debug/
 # Created by git for backups. To disable backups in Git:
 # $ git config --global mergetool.keepBackup false
 *.orig
-Notes
 # Created by git when using merge tools for conflicts
 *.BACKUP.*
 *.BASE.*
@@ -161,7 +161,6 @@ Notes
 *_BASE_*.txt
 *_LOCAL_*.txt
 *_REMOTE_*.txt
-Notes
 
 poetry.toml
 
@@ -186,5 +185,5 @@ pip-selfcheck.json
 .env.db.prod
 .env.server.dev
 .env.server.prod
-
+notes
 # End of https://www.toptal.com/developers/gitignore/api/django,git,python,venv
