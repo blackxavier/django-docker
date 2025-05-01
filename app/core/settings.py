@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 
-
+BASE_DIR = Path(__file__).resolve().parent.parent
 def get_env_variable(var_name, default=None):
     value = os.environ.get(var_name, default)
     if value is None:

@@ -187,3 +187,4 @@ pip-selfcheck.json
 .env.server.prod
 notes
 # End of https://www.toptal.com/developers/gitignore/api/django,git,python,venv
+/.vscode
