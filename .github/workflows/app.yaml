@@ -103,7 +103,8 @@ jobs:
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
           chmod 600 key.pem
-
+      - name: Set up docker on EC2
+        run: ./setup-docker.sh
       - name: Copy docker-compose.yml to EC2
         run: |
           scp -i key.pem -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
