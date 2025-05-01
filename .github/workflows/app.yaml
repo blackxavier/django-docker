@@ -106,7 +106,7 @@ jobs:
 
       - name: Copy docker-compose.yml to EC2
         run: |
-          scp -i key.pem -o StrictHostKeyChecking=no ../../docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
+          scp -i key.pem -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
 
       - name: Deploy to EC2
         run: |
