@@ -82,3 +82,4 @@ docker --version
 docker-compose --version
 
 echo "=== Setup completed successfully ==="
+EOF
