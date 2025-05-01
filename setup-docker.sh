@@ -51,18 +51,18 @@ sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPO
 sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
 
-# Configure Docker
-echo "Configuring Docker..."
-sudo tee /etc/docker/daemon.json > /dev/null <<'EOF'
-{
-  "exec-opts": ["native.cgroupdriver=systemd"],
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "100m"
-  },
-  "storage-driver": "overlay2"
-}
-EOF
+# # Configure Docker
+# echo "Configuring Docker..."
+# sudo tee /etc/docker/daemon.json > /dev/null <<'EOF'
+# {
+#   "exec-opts": ["native.cgroupdriver=systemd"],
+#   "log-driver": "json-file",
+#   "log-opts": {
+#     "max-size": "100m"
+#   },
+#   "storage-driver": "overlay2"
+# }
+# EOF
 
 # Add user to docker group
 echo "Adding $USER user to docker group..."
