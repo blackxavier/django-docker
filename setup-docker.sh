@@ -65,8 +65,8 @@ sudo tee /etc/docker/daemon.json > /dev/null <<EOF
 EOF
 
 # Add user to docker group
-echo "Adding ubuntu user to docker group..."
-sudo usermod -aG docker ubuntu
+echo "Adding $USER user to docker group..."
+sudo usermod -aG docker $USER
 
 # Start and enable services
 echo "Starting Docker..."
