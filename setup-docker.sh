@@ -1,13 +1,16 @@
 #!/bin/bash
 # Docker setup script for Ubuntu 22.04 (AWS EC2)
+
+# Convert line endings to LF and remove control characters
+# This should be done as early as possible to avoid issues with CRLF
+sed -i 's/\r$//' "$0"
+
 set -euo pipefail
 
 # Configuration
 DOCKER_COMPOSE_VERSION="v2.23.0"
 LOG_FILE="/var/log/docker-setup.log"
 
-# Convert line endings to LF and remove control characters
-sed -i 's/\r$//' "$0"
 
 # Initialize logging
 exec > >(tee -a "$LOG_FILE") 2>&1
