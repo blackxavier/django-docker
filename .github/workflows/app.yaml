@@ -108,7 +108,7 @@ jobs:
           scp -i key.pem -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
       - name: Copy docker setup script to EC2
         run: |
-          scp -i key.pem -o StrictHostKeyChecking=no setup-docker.sh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/setup-docker.sh
+          scp -i key.pem -o StrictHostKeyChecking=no setup-docker.sh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
 
       - name: Run docker setup script on EC2
         run: |
