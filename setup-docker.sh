@@ -6,16 +6,19 @@ set -euo pipefail
 DOCKER_COMPOSE_VERSION="v2.23.0"
 LOG_FILE="/var/log/docker-setup.log"
 
+# Convert line endings to LF and remove control characters
+sed -i 's/\r$//' "$0"
+
 # Initialize logging
 exec > >(tee -a "$LOG_FILE") 2>&1
 echo "=== Starting Docker Setup $(date) ==="
 
-# Update system
-echo "Updating package index..."
+# System updates
+echo "Updating packages..."
 sudo apt-get update -y
 
 # Install prerequisites
-echo "Installing required packages..."
+echo "Installing dependencies..."
 sudo apt-get install -y \
     ca-certificates \
     curl \
@@ -24,19 +27,20 @@ sudo apt-get install -y \
     software-properties-common \
     apt-transport-https
 
-# Add Docker's official GPG key
-echo "Adding Docker GPG key..."
+# Docker repository setup
+echo "Configuring Docker repository..."
 sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+    | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
-# Add Docker repository
-echo "Adding Docker repository..."
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) \
+    signed-by=/etc/apt/keyrings/docker.gpg] \
+    https://download.docker.com/linux/ubuntu \
+    $(lsb_release -cs) stable" \
+    | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# Install Docker
-echo "Installing Docker..."
+# Install Docker components
+echo "Installing Docker Engine..."
 sudo apt-get update -y
 sudo apt-get install -y \
     docker-ce \
@@ -45,39 +49,39 @@ sudo apt-get install -y \
     docker-buildx-plugin
 
 # Install Docker Compose
-echo "Installing Docker Compose v2..."
+echo "Installing Docker Compose..."
 sudo curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" \
     -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 sudo ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
 
-# # Configure Docker
-# echo "Configuring Docker..."
-# sudo tee /etc/docker/daemon.json > /dev/null <<'EOF'
-# {
-#   "exec-opts": ["native.cgroupdriver=systemd"],
-#   "log-driver": "json-file",
-#   "log-opts": {
-#     "max-size": "100m"
-#   },
-#   "storage-driver": "overlay2"
-# }
-# EOF
+# Docker configuration
+echo "Configuring Docker daemon..."
+sudo tee /etc/docker/daemon.json > /dev/null <<'EOF'
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
 
-# Add user to docker group
-echo "Adding $USER user to docker group..."
+# User permissions
+echo "Configuring user permissions..."
 sudo usermod -aG docker "$USER"
 
-# Start and enable services
-echo "Starting Docker..."
+# Service management
+echo "Starting Docker service..."
 sudo systemctl enable docker
 sudo systemctl restart docker
 
 # Verification
-echo "Verifying installation..."
-docker --version
-docker-compose --version
+echo "Verifying installations:"
+docker --version || { echo "Docker verification failed"; exit 1; }
+docker-compose --version || { echo "Docker Compose verification failed"; exit 1; }
 
 echo "=== Setup completed successfully ==="
-echo "You may need to logout and login again for group changes to take full effect"
-echo "Test with: docker run hello-world"
+echo "Note: You may need to reconnect for group changes to take effect"
+echo "Test with: docker run --rm hello-world"
