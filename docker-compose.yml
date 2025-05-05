@@ -7,7 +7,7 @@ services:
       context: ./app
       dockerfile: Dockerfile
     restart: always
-    containter_name: web
+
     networks:
       - backend
     depends_on:
@@ -53,7 +53,7 @@ services:
   dozzle:
     networks:
       - backend
-    container_name: dozzle
+
     image: amir20/dozzle:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -63,7 +63,7 @@ services:
   pgadmin:
     networks:
       - backend
-    container_name: pgadmin
+  
     image: dpage/pgadmin4:latest
     env_file:
       - ./.env.db.prod
