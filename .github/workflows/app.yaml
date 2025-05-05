@@ -106,26 +106,55 @@ jobs:
 
       - name: Copy docker-compose.yml to EC2
         run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          if [ ! -f /home/${{ secrets.SSH_USER }}/docker-compose.yml ]; then
+            echo "docker-compose.yml not found. Copying file..."
+            exit 1
+          else
+            echo "docker-compose.yml already exists. Skipping copy."
+          fi
+          EOF
           scp -i key.pem -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
 
       - name: Copy docker setup script to EC2
         run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          if [ ! -f /home/${{ secrets.SSH_USER }}/setup-docker.sh ]; then
+            echo "setup-docker.sh not found. Copying file..."
+            exit 1
+          else
+            echo "setup-docker.sh already exists. Skipping copy."
+          fi
+          EOF
           scp -i key.pem -o StrictHostKeyChecking=no setup-docker.sh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
 
       - name: Run docker setup script on EC2
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          ls -lah
-          sudo chmod +x /home/${{ secrets.SSH_USER }}/setup-docker.sh
-          ls -lah
-          sudo /home/${{ secrets.SSH_USER }}/setup-docker.sh
+          if ! command -v docker &> /dev/null; then
+            echo "Docker is not installed. Running setup script..."
+            sudo chmod +x /home/${{ secrets.SSH_USER }}/setup-docker.sh
+            sudo /home/${{ secrets.SSH_USER }}/setup-docker.sh
+          else
+            echo "Docker is already installed. Skipping setup."
+          fi
           EOF
 
       - name: Deploy to EC2
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/r-proxy:latest
+          if ! docker images | grep -q "${{ secrets.DOCKERHUB_USERNAME }}/app"; then
+            echo "Pulling app image..."
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
+          else
+            echo "App image already exists. Skipping pull."
+          fi
+          if ! docker images | grep -q "${{ secrets.DOCKERHUB_USERNAME }}/r-proxy"; then
+            echo "Pulling r-proxy image..."
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/r-proxy:latest
+          else
+            echo "r-proxy image already exists. Skipping pull."
+          fi
           docker-compose -f /home/${{ secrets.SSH_USER }}/docker-compose.yml up -d
           EOF
