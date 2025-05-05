@@ -19,8 +19,7 @@ services:
       - ./var/www/media:/home/app/web/mediafiles
     expose:
       - 8000
-    env_file:
-      - ./.env.server.prod
+    
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000"]
       interval: 30s
@@ -81,12 +80,21 @@ services:
   pgadmin:
     networks:
       - backend
-
     image: dpage/pgadmin4:latest
-    env_file:
-      - ./.env.db.prod
     environment:
-      - PGADMIN_CONFIG_LOGIN_BANNER="Authorisedusers"
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      - PGADMIN_LISTEN_PORT=80
+      - PGADMIN_CONFIG_SERVER_MODE=OFF
+      - PGADMIN_CONFIG_ENABLE_CSRF_PROTECTION=False
+      - PGADMIN_CONFIG_CONSOLE_LOG_LEVEL=DEBUG
+      - PGADMIN_CONFIG_FILE_LOG_LEVEL=DEBUG
+      - PGADMIN_CONFIG_ENABLE_BINARY_IMAGE_UPLOAD=True
+      - PGADMIN_CONFIG_ENABLE_FILE_UPLOAD=True
+      - PGADMIN_CONFIG_ENABLE_SERVER_GROUPS=True
+      - PGADMIN_CONFIG_ENABLE_USER_MANAGEMENT=True
+      - PGADMIN_CONFIG_ENABLE_SERVER_MODE=False
+      - PGADMIN_CONFIG_LOGIN_BANNER="Authorisedusers"      
     ports:
       - "5050:80"
     restart: always
