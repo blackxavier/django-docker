@@ -26,6 +26,24 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+  db:
+    image: postgres:latest
+    restart: always
+    networks:
+      - backend
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    expose:
+      - 5432
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
   r-proxy:
     #build: ./nginx
     image: ${DOCKERHUB_USERNAME}/r-proxy:latest
@@ -63,7 +81,7 @@ services:
   pgadmin:
     networks:
       - backend
-  
+
     image: dpage/pgadmin4:latest
     env_file:
       - ./.env.db.prod
