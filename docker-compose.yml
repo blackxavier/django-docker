@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   web:
-    image: ${{ secrets.DOCKERHUB_USERNAME }}/app:latest # From Docker Hub
+    image: ${DOCKERHUB_USERNAME}/app:latest # From Docker Hub
     build:
       context: ./app
       dockerfile: Dockerfile
@@ -28,7 +28,7 @@ services:
       retries: 3
   r-proxy:
     #build: ./nginx
-    image: ${{ secrets.DOCKERHUB_USERNAME }}/r-proxy:latest # From Docker Hub
+    image: ${DOCKERHUB_USERNAME}/r-proxy:latest
     ports:
       - 80:80
     volumes:
