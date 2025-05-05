@@ -106,8 +106,9 @@ jobs:
       - name: Copy docker-compose.yml to EC2
         run: |
           scp -i key.pem -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
+          chmod +x /home/${{ secrets.SSH_USER }}/docker-compose.yml
           echo "Print compose details"
-          ls -la docker-compose.yml
+          ls -la /home/${{ secrets.SSH_USER }}/docker-compose.yml
           echo "Print all directory listings"
           ls -lah
       - name: Copy docker setup script to EC2
@@ -122,6 +123,11 @@ jobs:
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}
           chmod +x setup-docker.sh
           sudo ./setup-docker.sh
+          echo "Print compose details"
+          ls -la docker-compose.yml
+          echo "Print all directory listings"
+          ls -lah
+  
       - name: Deploy to EC2
         run: |
           ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} 
