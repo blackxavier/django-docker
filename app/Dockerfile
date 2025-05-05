@@ -17,7 +17,8 @@ ENV PYTHONUNBUFFERED 1
 
 # install system dependencies
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc
+    apt-get install -y --no-install-recommends gcc && \
+    rm -rf /var/lib/apt/lists/*
 
 # lint
 RUN pip install --upgrade pip
@@ -50,27 +51,21 @@ RUN addgroup --system app && adduser --system --group app
 # create the appropriate directories
 ENV HOME=/home/app
 ENV APP_HOME=/home/app/web
-RUN mkdir $APP_HOME
-RUN mkdir $APP_HOME/staticfiles
-RUN mkdir $APP_HOME/mediafiles
+RUN mkdir -p $APP_HOME/staticfiles $APP_HOME/mediafiles
 WORKDIR $APP_HOME
 
 # install dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends netcat
+RUN apt-get update && apt-get install -y --no-install-recommends netcat && \
+    rm -rf /var/lib/apt/lists/*
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache /wheels/*
 
-# copy entrypoint.prod.sh
-COPY ./app-entrypoint.sh .
-RUN sed -i 's/\r$//g'  $APP_HOME/app-entrypoint.sh
-RUN chmod +x  $APP_HOME/app-entrypoint.sh
-
-# copy project
+# copy project files
 COPY . $APP_HOME
 
-# chown all the files to the app user
+# ensure the app user owns all files
 RUN chown -R app:app $APP_HOME
 
 # change to the app user
