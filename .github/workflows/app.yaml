@@ -106,7 +106,8 @@ jobs:
       - name: Copy docker-compose.yml to EC2
         run: |
           scp -i key.pem -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
-          chmod +x /home/${{ secrets.SSH_USER }}/docker-compose.yml
+          ls -lah
+          chmod +x docker-compose.yml
           echo "Print compose details"
           ls -la /home/${{ secrets.SSH_USER }}/docker-compose.yml
           echo "Print all directory listings"
