@@ -103,6 +103,19 @@ jobs:
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
           chmod 600 key.pem
+      - name: Generate .env file
+        run: |
+          cat <<EOF > .env
+          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}
+          PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}
+          EOF
+      - name: Copy .env file to EC2
+        run: |
+          scp -i key.pem -o StrictHostKeyChecking=no .env ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
 
       - name: Copy docker-compose.yml to EC2
         run: |
@@ -156,5 +169,5 @@ jobs:
           else
             echo "r-proxy image already exists. Skipping pull."
           fi
-          docker-compose -f /home/${{ secrets.SSH_USER }}/docker-compose.yml up -d
+          docker-compose --env-file /home/${{ secrets.SSH_USER }}/.env -f /home/${{ secrets.SSH_USER }}/docker-compose.yml up -d
           EOF
