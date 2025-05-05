@@ -169,5 +169,6 @@ jobs:
           else
             echo "r-proxy image already exists. Skipping pull."
           fi
+          ls lah
           docker-compose --env-file /home/${{ secrets.SSH_USER }}/.env -f /home/${{ secrets.SSH_USER }}/docker-compose.yml up -d
           EOF
