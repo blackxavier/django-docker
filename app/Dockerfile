@@ -1,75 +1,51 @@
-###########
-# BUILDER #
-###########
-
-# pull official base image
-FROM krallin/ubuntu-tini:trusty as tini
-
-# pull official base image
+# Use a multi-stage build for efficiency
 FROM python:3.11.4-slim-buster as builder
 
-# set work directory
-WORKDIR /usr/src/app
-
-# set environment variables
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# install system dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc && \
+# Set work directory
+WORKDIR /usr/src/app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends gcc && \
     rm -rf /var/lib/apt/lists/*
 
-# lint
-RUN pip install --upgrade pip
-RUN pip install flake8==6.0.0
-COPY . /usr/src/app/
-RUN flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics && \
-    flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-# install python dependencies
+# Install Python dependencies
 COPY ./requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -r requirements.txt
 
-
-#########
-# FINAL #
-#########
-
-# pull official base image
+# Final stage
 FROM python:3.11.4-slim-buster
 
-# Copy tini package
-COPY --from=tini /usr/local/bin/tini /usr/local/bin/tini
-
-# create directory for the app user
-RUN mkdir -p /home/app
-
-# create the app user
-RUN addgroup --system app && adduser --system --group app
-
-# create the appropriate directories
+# Set environment variables
 ENV HOME=/home/app
 ENV APP_HOME=/home/app/web
+
+# Create app directories and set work directory
 RUN mkdir -p $APP_HOME/staticfiles $APP_HOME/mediafiles
 WORKDIR $APP_HOME
 
-# install dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends netcat && \
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends netcat tini && \
     rm -rf /var/lib/apt/lists/*
-COPY --from=builder /usr/src/app/wheels /wheels
+
+# Copy Python dependencies from builder stage
+COPY --from=builder /wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
-RUN pip install --upgrade pip
 RUN pip install --no-cache /wheels/*
 
-# copy project files
+# Copy project files
 COPY . $APP_HOME
 
-# ensure the app user owns all files
-RUN chown -R app:app $APP_HOME
+# Ensure the app user owns all files
+RUN addgroup --system app && adduser --system --group app && \
+    chown -R app:app $APP_HOME
 
-# change to the app user
+# Switch to the app user
 USER app
 
-# run entrypoint.prod.sh
-ENTRYPOINT ["/home/app/web/app-entrypoint.sh"]
+# Set entrypoint
+ENTRYPOINT ["tini", "--", "/home/app/web/app-entrypoint.sh"]

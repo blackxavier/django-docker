@@ -46,8 +46,6 @@ Commands to deploy using docker stack
 - docker-compose -f docker-compose-stack.yml build
 - docker-compose -f docker-compose-stack.yml push
 - docker stack deploy djangostack --compose-file docker-compose-stack.yml
-
-
 # - name: Copy Nginx site config
     #   template:
     #     src: templates/sites-available/app.conf.j2
@@ -64,3 +62,4 @@ Commands to deploy using docker stack
     #     dest: /etc/nginx/sites-enabled/app.conf
     #     state: link
     #   notify: Restart Nginx
+    ..

@@ -7,7 +7,6 @@ services:
       context: ./app
       dockerfile: Dockerfile
     restart: always
-
     networks:
       - backend
     depends_on:
