@@ -44,8 +44,18 @@ COPY . $APP_HOME
 RUN addgroup --system app && adduser --system --group app && \
     chown -R app:app $APP_HOME
 
+# Ensure static and media directories are owned by the app user
+RUN chown -R app:app $APP_HOME/staticfiles $APP_HOME/mediafiles
+
+# Verify that app-entrypoint.sh exists and is executable
+COPY ./app-entrypoint.sh /home/app/web/app-entrypoint.sh
+RUN chmod +x /home/app/web/app-entrypoint.sh
+
+
+
 # Switch to the app user
 USER app
 
 # Set entrypoint
 ENTRYPOINT ["tini", "--", "/home/app/web/app-entrypoint.sh"]
+
