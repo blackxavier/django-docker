@@ -47,9 +47,9 @@ RUN addgroup --system app && adduser --system --group app && \
 # Ensure static and media directories are owned by the app user
 RUN chown -R app:app $APP_HOME/staticfiles $APP_HOME/mediafiles
 
-# Verify that app-entrypoint.sh exists and is executable
+# Verify that app-entrypoint.sh exists, set ownership, and ensure it is executable
 COPY ./app-entrypoint.sh /home/app/web/app-entrypoint.sh
-RUN chmod +x /home/app/web/app-entrypoint.sh
+RUN chown app:app /home/app/web/app-entrypoint.sh && chmod +x /home/app/web/app-entrypoint.sh
 
 
 
