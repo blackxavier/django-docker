@@ -40,6 +40,9 @@ RUN pip install --no-cache /wheels/*
 # Copy project files
 COPY . $APP_HOME
 
+# Verify the contents of the $APP_HOME directory
+RUN ls -lah $APP_HOME
+
 # Ensure the app user owns all files
 RUN addgroup --system app && adduser --system --group app && \
     chown -R app:app $APP_HOME
