@@ -18,7 +18,7 @@ services:
       - ./var/www/media:/home/app/web/mediafiles
     expose:
       - 8000
-    
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000"]
       interval: 30s
@@ -43,7 +43,7 @@ services:
       timeout: 10s
       retries: 3
   r-proxy:
-    #build: ./nginx
+    build: ./nginx
     image: ${DOCKERHUB_USERNAME}/r-proxy:latest
     ports:
       - 80:80
@@ -93,7 +93,7 @@ services:
       - PGADMIN_CONFIG_ENABLE_SERVER_GROUPS=True
       - PGADMIN_CONFIG_ENABLE_USER_MANAGEMENT=True
       - PGADMIN_CONFIG_ENABLE_SERVER_MODE=False
-      - PGADMIN_CONFIG_LOGIN_BANNER="Authorisedusers"      
+      - PGADMIN_CONFIG_LOGIN_BANNER="Authorisedusers"
     ports:
       - "5050:80"
     restart: always
