@@ -3,6 +3,7 @@
 
 # Convert line endings to LF and remove control characters
 # This should be done as early as possible to avoid issues with CRLF
+
 sed -i 's/\r$//' "$0"
 
 set -euo pipefail
