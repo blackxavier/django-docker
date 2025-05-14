@@ -45,13 +45,15 @@ services:
   r-proxy:
     build: ./nginx
     image: ${DOCKERHUB_USERNAME}/r-proxy:latest
+    networks:
+      - backend
+    depends_on:
+      - web
     ports:
       - 80:80
     volumes:
       - static_volume:/home/app/web/staticfiles
       - media_volume:/home/app/web/mediafiles
-    depends_on:
-      - web
 
   redis:
     image: redis
