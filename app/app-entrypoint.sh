@@ -10,6 +10,13 @@ then
 
     echo "PostgreSQL started"
 fi
+chown -R app:app /home/app/web/staticfiles /home/app/web/mediafiles
+
 python manage.py migrate
+
 python manage.py collectstatic --no-input --clear
+
+# Fix ownership of staticfiles and mediafiles at runtime
+
+
 exec "$@"
