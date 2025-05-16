@@ -16,6 +16,7 @@ services:
     volumes:
       - ./var/www/static:/home/app/web/staticfiles
       - ./var/www/media:/home/app/web/mediafiles
+      - ./app/mediafiles:/home/app/web/mediafiles # Ensure this is added
     expose:
       - 8000
 

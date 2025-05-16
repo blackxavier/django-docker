@@ -4,10 +4,14 @@ from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
 def get_env_variable(var_name, default=None):
     value = os.environ.get(var_name, default)
     if value is None:
-        raise ImproperlyConfigured(f"The {var_name} environment variable is not set and no default value was provided.")
+        raise ImproperlyConfigured(
+            f"The {var_name} environment variable is not set and no default value was provided."
+        )
     return value
 
 
@@ -121,6 +125,10 @@ STATIC_URL = "/static/"
 MEDIA_URL = "/media/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_ROOT = BASE_DIR / "mediafiles"
+
+# Ensure the mediafiles directory exists
+os.makedirs(MEDIA_ROOT, exist_ok=True)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
