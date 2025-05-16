@@ -18,7 +18,7 @@ def get_env_variable(var_name, default=None):
 # Use the updated function to set SECRET_KEY with a fallback value
 SECRET_KEY = get_env_variable("SECRET_KEY", "fallback-secret-key")
 
-DEBUG = bool(os.environ.get("DEBUG", default=0))
+DEBUG = bool(int(os.environ.get("DEBUG", default=0)))
 
 # 'DJANGO_ALLOWED_HOSTS' should be a single string of hosts with a space
 # between each.
