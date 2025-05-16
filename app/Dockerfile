@@ -43,20 +43,14 @@ COPY . $APP_HOME
 # Verify the contents of the $APP_HOME directory
 RUN ls -lah $APP_HOME
 
-# Ensure the app user owns all files
+# Ensure the app user owns all files and directories under $APP_HOME
 RUN addgroup --system app && adduser --system --group app && \
-    chown -R app:app $APP_HOME
-
-# Ensure static and media directories are owned by the app user
-RUN chown -R app:app $APP_HOME/staticfiles $APP_HOME/mediafiles
+    chown -R app:app $APP_HOME && \
+    chmod -R 755 $APP_HOME
 
 # Verify that app-entrypoint.sh exists, set ownership, and ensure it is executable
 COPY ./app-entrypoint.sh /home/app/web/app-entrypoint.sh
 RUN chown app:app /home/app/web/app-entrypoint.sh && chmod +x /home/app/web/app-entrypoint.sh
-
-# Change permissions of static and media files
-RUN chmod -R 755 /home/app/web/staticfiles && \
-    chmod -R 755 /home/app/web/mediafiles
 
 # Switch to the app user
 USER app
