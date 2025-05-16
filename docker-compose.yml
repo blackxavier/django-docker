@@ -4,7 +4,7 @@ services:
   web:
     image: ${DOCKERHUB_USERNAME}/app:latest # From Docker Hub
     build:
-      context: ./app
+      context: ./app # Ensure this path is correct
       dockerfile: Dockerfile
     restart: always
     networks:
