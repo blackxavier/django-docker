@@ -40,13 +40,16 @@ RUN pip install --no-cache /wheels/*
 # Copy project files
 COPY . $APP_HOME
 
-# Verify the contents of the $APP_HOME directory
-RUN ls -lah $APP_HOME
+
 
 # Ensure the app user owns all files and directories under $APP_HOME
 RUN addgroup --system app && adduser --system --group app && \
     chown -R app:app $APP_HOME && \
-    chmod -R 755 $APP_HOME
+    chmod -R 755 $APP_HOME && \
+    chmod -R 755 $APP_HOME/staticfiles && \
+    chmod -R 755 $APP_HOME/mediafiles && \
+    chown -R app:app $APP_HOME/staticfiles && \
+    chown -R app:app $APP_HOME/mediafiles
 
 # Verify that app-entrypoint.sh exists, set ownership, and ensure it is executable
 COPY ./app-entrypoint.sh /home/app/web/app-entrypoint.sh
