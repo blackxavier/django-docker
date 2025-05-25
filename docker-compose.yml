@@ -14,9 +14,8 @@ services:
       - redis
     command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
     volumes:
-      - ./var/www/static:/home/app/web/staticfiles
-      - ./var/www/media:/home/app/web/mediafiles
-      - ./app/mediafiles:/home/app/web/mediafiles # Ensure this is added
+      - static-volume:/home/app/web/staticfiles
+      - media-volume:/home/app/web/mediafiles
     expose:
       - 8000
 

@@ -116,7 +116,7 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-CSRF_TRUSTED_ORIGINS = ["http://localhost:1337"]
+CSRF_TRUSTED_ORIGINS = ["http://r-proxy:80"]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
