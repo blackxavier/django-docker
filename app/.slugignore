@@ -1,0 +1,28 @@
+# General
+*.pyc
+__pycache__/
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Test files (if not needed in production slug)
+# *.tests.py
+# tests/
+# test/
+
+# VS Code
+.vscode/
+
+# If you have a local mediafiles directory that shouldn't be deployed
+# (as media should be on S3 for Heroku)
+/mediafiles/ 

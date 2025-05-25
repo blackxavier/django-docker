@@ -7,3 +7,7 @@ sqlparse==0.5.0
 redis==5.0.6
 tzdata==2024.1
 flake8
+whitenoise
+dj-database-url
+boto3
+django-storages

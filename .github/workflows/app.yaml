@@ -1,9 +1,10 @@
-name: CI/CD for django sample app
+name: CI/CD for Django App to Heroku
 
 on:
   push:
     branches:
-      - "feature/*"
+      - main # Or your primary deployment branch, e.g., master
+      - "feature/*" # Keep if you want to run lint/test on feature branches
   workflow_dispatch:
 
 jobs:
@@ -11,164 +12,95 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9" # Specify your Python version
+          python-version: "3.11" # Match your app's Python version (e.g., from runtime.txt)
 
       - name: Install dependencies
+        working-directory: ./app
         run: |
           python -m pip install --upgrade pip
-          pip install -r app/requirements.txt
+          pip install -r requirements.txt
 
-      - name: Run linting
+      - name: Run linting (flake8)
+        working-directory: ./app
         run: |
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
-      - name: List files for debugging
-        run: ls -R
-      - name: Run migrations
+  test:
+    runs-on: ubuntu-latest
+    needs: [lint]
+    services: # Optional: Add a PostgreSQL service for testing if your tests require it
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        working-directory: ./app
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Django tests
         working-directory: ./app
         env:
-          DJANGO_SETTINGS_MODULE: core.settings
+          # --- For SQLite testing (simpler, if your tests don't need PostgreSQL features) ---
+          # DJANGO_SETTINGS_MODULE: core.settings # Ensure settings can default to SQLite if DATABASE_URL is not set
+          # --- For PostgreSQL testing (using the service above) ---
+          DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
+          SECRET_KEY: "test_secret_key_for_gha" # Dummy secret key for tests
+          DEBUG: "1"
+          # Add any other environment variables your tests might need
         run: |
+          python manage.py makemigrations
           python manage.py migrate
+          python manage.py test
 
-  build-and-push:
-    needs: [lint]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+  # deploy-to-heroku:
+  #   runs-on: ubuntu-latest
+  #   needs: [test] # Depends on the test job passing
+  #   # Only run on pushes to the main branch (or your designated deployment branch)
+  #   if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
 
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }} # Use owner/org name
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and Push web Image to GHCR and Docker Hub
-        uses: docker/build-push-action@v5
-        with:
-          context: ./app
-          file: ./app/Dockerfile
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/app:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
-            ghcr.io/${{ github.repository_owner }}/app:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/app:latest
-
-      - name: Build and Push nginx Image to GHCR and Docker Hub
-        uses: docker/build-push-action@v5
-        with:
-          context: ./nginx
-          file: ./nginx/Dockerfile
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/r-proxy:${{ github.sha }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/r-proxy:latest
-            ghcr.io/${{ github.repository_owner }}/r-proxy:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/r-proxy:latest
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [build-and-push]
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up SSH on EC2
-        run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > key.pem
-          chmod 600 key.pem
-      - name: Generate .env file
-        run: |
-          cat <<EOF > .env
-          DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
-          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}
-          PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}
-          EOF
-      - name: Copy .env file to EC2
-        run: |
-          scp -i key.pem -o StrictHostKeyChecking=no .env ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
-
-      - name: Copy docker-compose.yml to EC2
-        run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          if [ ! -f /home/${{ secrets.SSH_USER }}/docker-compose.yml ]; then
-            echo "docker-compose.yml not found. Copying file..."
-            exit 1
-          else
-            echo "docker-compose.yml already exists. Skipping copy."
-          fi
-          EOF
-          scp -i key.pem -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
-
-      - name: Copy docker setup script to EC2
-        run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          if [ ! -f /home/${{ secrets.SSH_USER }}/setup-docker.sh ]; then
-            echo "setup-docker.sh not found. Copying file..."
-            exit 1
-          else
-            echo "setup-docker.sh already exists. Skipping copy."
-          fi
-          EOF
-          scp -i key.pem -o StrictHostKeyChecking=no setup-docker.sh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SSH_USER }}/
-
-      - name: Run docker setup script on EC2
-        run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          if ! command -v docker &> /dev/null; then
-            echo "Docker is not installed. Running setup script..."
-            sudo chmod +x /home/${{ secrets.SSH_USER }}/setup-docker.sh
-            sudo /home/${{ secrets.SSH_USER }}/setup-docker.sh
-          else
-            echo "Docker is already installed. Skipping setup."
-          fi
-          EOF
-
-      - name: Deploy to EC2
-        run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-          if ! docker images | grep -q "${{ secrets.DOCKERHUB_USERNAME }}/app"; then
-            echo "Pulling app image..."
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/app:latest
-          else
-            echo "App image already exists. Skipping pull."
-          fi
-          if ! docker images | grep -q "${{ secrets.DOCKERHUB_USERNAME }}/r-proxy"; then
-            echo "Pulling r-proxy image..."
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/r-proxy:latest
-          else
-            echo "r-proxy image already exists. Skipping pull."
-          fi
-          ls -lah
-          sudo docker-compose --env-file /home/${{ secrets.SSH_USER }}/.env -f /home/${{ secrets.SSH_USER }}/docker-compose.yml up -d
-          EOF
+  #     - name: Deploy to Heroku
+  #       uses: akhileshns/heroku-deploy@v3.12.12 # Or latest version
+  #       with:
+  #         heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+  #         heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+  #         heroku_email: ${{ secrets.HEROKU_EMAIL }}
+  #         # This specifies that the 'app' directory in your repo is the root of the Heroku app
+  #         heroku_app_directory: "app"
+  #         # Optional: Use if your Procfile is not named 'Procfile' or is in a different location within heroku_app_directory
+  #         # procfile: "app/Procfile" # Not needed if Procfile is at the root of heroku_app_directory
+  #         # Optional: Add a commit message for the Heroku deployment
+  #         # commit_message: "Deploying from GitHub Actions: ${{ github.sha }}"
+  #       env:
+  #         # Environment variables needed by Heroku during the build process (if any)
+  #         # These are different from Heroku config vars set on the Heroku dashboard
+  #         # For example, if your settings.py needs HEROKU_APP_NAME during collectstatic:
+  #         HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
