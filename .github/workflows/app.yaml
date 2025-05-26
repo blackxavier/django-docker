@@ -38,9 +38,9 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpassword
-          POSTGRES_DB: testdb
+          POSTGRES_DB: ${{ secrets.TEST_DB_NAME }}
+          POSTGRES_USER: ${{ secrets.TEST_DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
