@@ -1,10 +1,10 @@
-name: CI/CD for Django App to Heroku
+name: CI For Django App, with Heroku Deployment
 
 on:
   push:
     branches:
-      - main # Or your primary deployment branch, e.g., master
-      - "feature/*" # Keep if you want to run lint/test on feature branches
+      - heroku-deploy
+
   workflow_dispatch:
 
 jobs:
@@ -78,29 +78,5 @@ jobs:
           python manage.py migrate
           python manage.py test
 
-  # deploy-to-heroku:
-  #   runs-on: ubuntu-latest
-  #   needs: [test] # Depends on the test job passing
-  #   # Only run on pushes to the main branch (or your designated deployment branch)
-  #   if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v3
-
-  #     - name: Deploy to Heroku
-  #       uses: akhileshns/heroku-deploy@v3.12.12 # Or latest version
-  #       with:
-  #         heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-  #         heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-  #         heroku_email: ${{ secrets.HEROKU_EMAIL }}
-  #         # This specifies that the 'app' directory in your repo is the root of the Heroku app
-  #         heroku_app_directory: "app"
-  #         # Optional: Use if your Procfile is not named 'Procfile' or is in a different location within heroku_app_directory
-  #         # procfile: "app/Procfile" # Not needed if Procfile is at the root of heroku_app_directory
-  #         # Optional: Add a commit message for the Heroku deployment
-  #         # commit_message: "Deploying from GitHub Actions: ${{ github.sha }}"
-  #       env:
-  #         # Environment variables needed by Heroku during the build process (if any)
-  #         # These are different from Heroku config vars set on the Heroku dashboard
-  #         # For example, if your settings.py needs HEROKU_APP_NAME during collectstatic:
-  #         HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+# The deploy-to-heroku job has been removed as Heroku will handle deployment
+# after these CI checks pass, via its GitHub integration.
