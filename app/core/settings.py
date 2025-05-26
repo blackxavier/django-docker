@@ -25,11 +25,11 @@ DEBUG = bool(int(os.environ.get("DEBUG", default=0)))
 
 # Configure ALLOWED_HOSTS for Heroku
 HEROKU_APP_NAME = os.environ.get("HEROKU_APP_NAME")
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
-if HEROKU_APP_NAME:
-    ALLOWED_HOSTS.append(f"{HEROKU_APP_NAME}.herokuapp.com")
-# Add your custom domain if you have one
-# ALLOWED_HOSTS.append('yourcustomdomain.com')
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "*"]
+# if HEROKU_APP_NAME:
+#     ALLOWED_HOSTS.append(f"{HEROKU_APP_NAME}.herokuapp.com")
+# # Add your custom domain if you have one
+# # ALLOWED_HOSTS.append('yourcustomdomain.com')
 
 
 # Application definition
