@@ -11,3 +11,4 @@ whitenoise
 dj-database-url
 boto3
 django-storages
+django_redis
