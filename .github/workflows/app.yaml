@@ -66,7 +66,7 @@ jobs:
       - name: Run Django tests
         working-directory: ./app
         env:
-          DATABASE_URL: postgres://${{ secrets.TEST_DB_USER }}:${{ secrets.TEST_DB_PASSWORD }}@localhost:5432/${{secrets.TEST_DB_NAME }}
+          DATABASE_URL: postgres://${{ secrets.TEST_DB_USER }}:${{ secrets.TEST_DB_PASSWORD }}@localhost:5432/${{secrets.TEST_DB_NAME }}?sslmode=disable
           SECRET_KEY: "test_secret_key_for_gha" # Dummy secret key for tests
           DEBUG: "1"
           # Add any other environment variables your tests might need
