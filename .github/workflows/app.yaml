@@ -34,7 +34,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     needs: [lint]
-    services: # Optional: Add a PostgreSQL service for testing if your tests require it
+    services:
       postgres:
         image: postgres:15
         env:
@@ -66,10 +66,7 @@ jobs:
       - name: Run Django tests
         working-directory: ./app
         env:
-          # --- For SQLite testing (simpler, if your tests don't need PostgreSQL features) ---
-          # DJANGO_SETTINGS_MODULE: core.settings # Ensure settings can default to SQLite if DATABASE_URL is not set
-          # --- For PostgreSQL testing (using the service above) ---
-          DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
+          DATABASE_URL: postgres://${{ secrets.TEST_DB_USER }}:${{ secrets.TEST_DB_PASSWORD }}@postgres:5432/${{secrets.TEST_DB_NAME }}
           SECRET_KEY: "test_secret_key_for_gha" # Dummy secret key for tests
           DEBUG: "1"
           # Add any other environment variables your tests might need
@@ -77,6 +74,3 @@ jobs:
           python manage.py makemigrations
           python manage.py migrate
           python manage.py test
-
-# The deploy-to-heroku job has been removed as Heroku will handle deployment
-# after these CI checks pass, via its GitHub integration.
